@@ -51,6 +51,8 @@ namespace ShopCartSoftware.Controllers
         // GET: Products/Create
         public IActionResult Create()
         {
+
+            ViewBag.Categorys = Helpers.Functions.GetCategorys();
             return View();
         }
 
