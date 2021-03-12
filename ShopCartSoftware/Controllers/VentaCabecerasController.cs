@@ -10,23 +10,22 @@ using ShopCartSoftware.Models;
 
 namespace ShopCartSoftware.Controllers
 {
-    public class CategoriesController : Controller
+    public class VentaCabecerasController : Controller
     {
         private readonly ApplicationDbContext _context;
 
-        public CategoriesController(ApplicationDbContext context)
+        public VentaCabecerasController(ApplicationDbContext context)
         {
             _context = context;
         }
 
-        // GET: Categories
+        // GET: VentaCabeceras
         public async Task<IActionResult> Index()
         {
-            //if(Helpers.Functions.getUserId())
-            return View(await _context.Category.ToListAsync());
+            return View(await _context.VentaCabecera.ToListAsync());
         }
 
-        // GET: Categories/Details/5
+        // GET: VentaCabeceras/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -34,39 +33,46 @@ namespace ShopCartSoftware.Controllers
                 return NotFound();
             }
 
-            var category = await _context.Category
+            var ventaCabecera = await _context.VentaCabecera
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (category == null)
+            if (ventaCabecera == null)
             {
                 return NotFound();
             }
 
-            return View(category);
+            return View(ventaCabecera);
         }
 
-        // GET: Categories/Create
+        // GET: VentaCabeceras/Create
         public IActionResult Create()
         {
-            return View();
+            var cabecera = new VentaCabecera();
+            return View(cabecera);
         }
 
-        // POST: Categories/Create
+        // POST: VentaCabeceras/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to, for 
         // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Description")] Category category)
+        public async Task<IActionResult> Create([Bind("Id,Date,IdUsuario")] VentaCabecera ventaCabecera)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(category);
+
+                if( User.Identity.IsAuthenticated)
+                {
+                 var user = User.Identity.Name;
+                 ventaCabecera.IdUsuario = user;
+                _context.Add(ventaCabecera);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
+                }
             }
-            return View(category);
+            return View(ventaCabecera);
         }
 
-        // GET: Categories/Edit/5
+        // GET: VentaCabeceras/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -74,22 +80,22 @@ namespace ShopCartSoftware.Controllers
                 return NotFound();
             }
 
-            var category = await _context.Category.FindAsync(id);
-            if (category == null)
+            var ventaCabecera = await _context.VentaCabecera.FindAsync(id);
+            if (ventaCabecera == null)
             {
                 return NotFound();
             }
-            return View(category);
+            return View(ventaCabecera);
         }
 
-        // POST: Categories/Edit/5
+        // POST: VentaCabeceras/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to, for 
         // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Description")] Category category)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Date,IdUsuario")] VentaCabecera ventaCabecera)
         {
-            if (id != category.Id)
+            if (id != ventaCabecera.Id)
             {
                 return NotFound();
             }
@@ -98,12 +104,12 @@ namespace ShopCartSoftware.Controllers
             {
                 try
                 {
-                    _context.Update(category);
+                    _context.Update(ventaCabecera);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!CategoryExists(category.Id))
+                    if (!VentaCabeceraExists(ventaCabecera.Id))
                     {
                         return NotFound();
                     }
@@ -114,10 +120,10 @@ namespace ShopCartSoftware.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(category);
+            return View(ventaCabecera);
         }
 
-        // GET: Categories/Delete/5
+        // GET: VentaCabeceras/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -125,30 +131,30 @@ namespace ShopCartSoftware.Controllers
                 return NotFound();
             }
 
-            var category = await _context.Category
+            var ventaCabecera = await _context.VentaCabecera
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (category == null)
+            if (ventaCabecera == null)
             {
                 return NotFound();
             }
 
-            return View(category);
+            return View(ventaCabecera);
         }
 
-        // POST: Categories/Delete/5
+        // POST: VentaCabeceras/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var category = await _context.Category.FindAsync(id);
-            _context.Category.Remove(category);
+            var ventaCabecera = await _context.VentaCabecera.FindAsync(id);
+            _context.VentaCabecera.Remove(ventaCabecera);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool CategoryExists(int id)
+        private bool VentaCabeceraExists(int id)
         {
-            return _context.Category.Any(e => e.Id == id);
+            return _context.VentaCabecera.Any(e => e.Id == id);
         }
     }
 }
