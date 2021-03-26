@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ShopCartSoftware.Data;
+using ShopCartSoftware.Helpers;
 using ShopCartSoftware.Models;
 
 namespace ShopCartSoftware.Controllers
@@ -14,9 +16,11 @@ namespace ShopCartSoftware.Controllers
     {
         private readonly ApplicationDbContext _context;
 
+        private readonly ApplicationUser userManager;
         public VentaCabecerasController(ApplicationDbContext context)
         {
             _context = context;
+            userManager = new ApplicationUser();
         }
 
         // GET: VentaCabeceras
@@ -24,6 +28,14 @@ namespace ShopCartSoftware.Controllers
         {
             return View(await _context.VentaCabecera.ToListAsync());
         }
+
+        //// GET: VentaCabeceras
+        //[HttpPost]
+        //public async Task<IActionResult> Index(int Categoriaid)
+        //{
+
+        //    return View();
+        //}
 
         // GET: VentaCabeceras/Details/5
         public async Task<IActionResult> Details(int? id)
@@ -40,13 +52,22 @@ namespace ShopCartSoftware.Controllers
                 return NotFound();
             }
 
+            ventaCabecera.Details = _context.VentaDetalle.Where(vd => vd.VentaCabeceraId == id).ToList();
+
+            if (ventaCabecera.Details == null)
+                ventaCabecera.Details = new List<VentaDetalle>();
+            ViewBag.TotalVentas = ventaCabecera.Details.Sum(p=>p.Price*p.Quantity);
+
+
             return View(ventaCabecera);
         }
 
         // GET: VentaCabeceras/Create
-        public IActionResult Create()
+        public IActionResult Create(int idCategory,string strFilter)
         {
-            var cabecera = new VentaCabecera();
+
+            ViewBag.CategoryList = Helpers.Functions.GetCategorys(true);
+            var cabecera = new VentaCabecera(idCategory,strFilter);
             return View(cabecera);
         }
 
@@ -57,16 +78,31 @@ namespace ShopCartSoftware.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Date,IdUsuario")] VentaCabecera ventaCabecera)
         {
-            if (ModelState.IsValid)
+            if (ModelState.IsValid && ListProducts.Count>0)
             {
 
-                if( User.Identity.IsAuthenticated)
+                if (User.Identity.IsAuthenticated)
                 {
-                 var user = User.Identity.Name;
-                 ventaCabecera.IdUsuario = user;
-                _context.Add(ventaCabecera);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                    var user = userManager.Id;
+                    ventaCabecera.IdUsuario = user;
+
+                    var ListDetalle = new List<VentaDetalle>();
+                    foreach (var item in ListProducts)
+                    {
+                        var ventaDetail = new VentaDetalle();
+
+                        ventaDetail.ProductId = item.IdProduct;
+                        ventaDetail.Quantity = item.Quantity;
+                        ventaDetail.Price = _context.Product.Where(p => p.Id == item.IdProduct).FirstOrDefault().Price;
+                        ListDetalle.Add(ventaDetail);
+                    }
+                    ventaCabecera.Details = ListDetalle;
+
+
+                   
+                    _context.Add(ventaCabecera);
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
                 }
             }
             return View(ventaCabecera);
@@ -156,5 +192,57 @@ namespace ShopCartSoftware.Controllers
         {
             return _context.VentaCabecera.Any(e => e.Id == id);
         }
+
+
+        private static List<ShopCartTemp> ListProducts;
+        public ShopCartTemp AddProductToCart(int IdProduct)
+        {
+
+            if (ListProducts == null)
+            {
+                ListProducts = new List<ShopCartTemp>();
+            }
+
+            var productInList = ListProducts.Where(p => p.IdProduct == IdProduct).FirstOrDefault();
+
+            if (productInList != null)
+            {
+                productInList.Quantity++;
+            }
+            else
+            {
+                productInList = new ShopCartTemp() { IdProduct = IdProduct, Quantity = 1 };
+                ListProducts.Add(productInList);
+            }
+
+            productInList.TotalProducto = _context.Product.Where(p => p.Id == IdProduct).FirstOrDefault().Price * productInList.Quantity;
+
+            ShopCartTemp ret = GetProductShopCart(IdProduct);
+
+            return ret;
+        }
+
+        public ShopCartTemp GetProductShopCart(int IdProduct)
+        {
+            return ListProducts.Where(p => p.IdProduct == IdProduct).FirstOrDefault();
+        }
+
+        public decimal GetImporteTotal()
+        {
+            var total = ListProducts.Sum(t => t.TotalProducto);
+            return total;
+        }
+
+        public class ShopCartTemp
+        {
+            public int IdProduct { get; set; }
+            public int Quantity { get; set; }
+
+            public decimal TotalProducto { get; set; }
+        }
+
+
+
+      
     }
 }

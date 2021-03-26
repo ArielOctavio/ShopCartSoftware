@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using ShopCartSoftware.Data;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -43,6 +44,20 @@ namespace ShopCartSoftware.Models
         public int CategoryId { get; set; }
 
         public string ImageName { get; set; }
+
+
+        public Category GetCategory()
+        {
+            Category cat;
+
+            using(var _context=new ApplicationDbContext())
+            {
+                cat = _context.Category.Where(c => c.Id == CategoryId).FirstOrDefault();
+
+            }
+            return cat;
+
+        }
 
 
     }

@@ -37,5 +37,7 @@ namespace ShopCartSoftware.Data
         public DbSet<ShopCartSoftware.Models.Product> Product { get; set; }
         public DbSet<ShopCartSoftware.Models.Category> Category { get; set; }
         public DbSet<ShopCartSoftware.Models.VentaCabecera> VentaCabecera { get; set; }
+
+        public DbSet<ShopCartSoftware.Models.VentaDetalle> VentaDetalle { get; set; }
     }
 }

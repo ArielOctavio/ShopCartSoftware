@@ -71,38 +71,52 @@ namespace ShopCartSoftware.Controllers
         {
             if (ModelState.IsValid)
             { //Save image to wwwroot/image
-                var files = HttpContext.Request.Form.Files;
-                foreach (var Image in files)
-                {
-                    if (Image != null && Image.Length > 0)
-                    {
 
-                        var file = Image;
-                        var uploads = Path.Combine(_hostEnvironment.WebRootPath, "uploads\\img\\product");
+                product.ImageName = await UploadImage();
 
-                        if (file.Length > 0)
-                        {
-                            var fileName = ContentDispositionHeaderValue.Parse
-                                (file.ContentDisposition).FileName.Trim('"');
-
-                          //  System.Console.WriteLine(fileName);
-                            using (var fileStream = new FileStream(Path.Combine(uploads, file.FileName), FileMode.Create))
-                            {
-                                await file.CopyToAsync(fileStream);
-                                product.ImageName = file.FileName;
-                            }
-
-
-                        }
-                    }
-                }
-
-                _context.Add(product);
+               _context.Add(product);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
             return View(product);
         }
+
+        public async Task<string> UploadImage()
+        {
+            var ret = "";
+            var files = HttpContext.Request.Form.Files;
+            foreach (var Image in files)
+            {
+                if (Image != null && Image.Length > 0)
+                {
+
+                    var file = Image;
+                    var uploads = Path.Combine(_hostEnvironment.WebRootPath, "uploads\\img\\product");
+
+                    if (file.Length > 0)
+                    {
+                        var fileName = ContentDispositionHeaderValue.Parse
+                            (file.ContentDisposition).FileName.Trim('"');
+
+                        //  System.Console.WriteLine(fileName);
+                        using (var fileStream = new FileStream(Path.Combine(uploads, file.FileName), FileMode.Create))
+                        {
+                            await file.CopyToAsync(fileStream);
+                            ret= file.FileName;
+                        }
+                    }
+                }
+            }
+            return ret;
+        }
+        #region  Borrar Archivo
+        private void DeleteFile(string imgName)
+        {
+            var uploads = Path.Combine(_hostEnvironment.WebRootPath, "uploads\\img\\product");
+            var fileName = imgName;
+             System.IO.File.Delete(Path.Combine(uploads, fileName));
+        }
+        #endregion
 
         // GET: Products/Edit/5
         public async Task<IActionResult> Edit(int? id)
@@ -165,6 +179,7 @@ namespace ShopCartSoftware.Controllers
 
             var product = await _context.Product
                 .FirstOrDefaultAsync(m => m.Id == id);
+         
             if (product == null)
             {
                 return NotFound();
@@ -181,6 +196,7 @@ namespace ShopCartSoftware.Controllers
             var product = await _context.Product.FindAsync(id);
             _context.Product.Remove(product);
             await _context.SaveChangesAsync();
+            DeleteFile(product.ImageName);
             return RedirectToAction(nameof(Index));
         }
 

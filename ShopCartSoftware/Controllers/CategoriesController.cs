@@ -66,6 +66,37 @@ namespace ShopCartSoftware.Controllers
             return View(category);
         }
 
+
+        /// <summary>
+        /// Vistas Parciales
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        // GET: Categories/Create
+        public IActionResult CreatePartial()
+        {
+            return View();
+        }
+
+        // POST: Categories/Create
+        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
+        // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        //[ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreatePartial(string categoryStr)
+        {
+
+            var category = new Category();
+            category.Description = categoryStr;
+            if (!string.IsNullOrEmpty(category.Description))
+            {
+                _context.Add(category);
+                await _context.SaveChangesAsync();
+                return Ok("OK");
+            }
+            return  Ok("Error");
+        }
+
         // GET: Categories/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
@@ -149,6 +180,15 @@ namespace ShopCartSoftware.Controllers
         private bool CategoryExists(int id)
         {
             return _context.Category.Any(e => e.Id == id);
+        }
+
+
+        public JsonResult GetCategorySelectList()
+        {
+            var categories = Helpers.Functions.GetCategorys();
+        
+            return Json(categories);
+
         }
     }
 }
