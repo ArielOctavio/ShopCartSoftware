@@ -11,3 +11,13 @@ $.validator.methods.date = function (value, element) {
     var date = value.split("/");
     return this.optional(element) || !/Invalid|NaN/.test(new Date(date[2], date[1], date[0]).toString());
 }
+
+$("#Price").keypress(function (tecla) {
+
+    if (tecla.charCode === 46) {
+        var price = $("#Price").val();
+        $("#Price").val(price + ",");
+        return false;
+  
+    }
+});

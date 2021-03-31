@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -17,6 +18,7 @@ namespace ShopCartSoftware.Controllers
         private readonly ApplicationDbContext _context;
 
         private readonly ApplicationUser userManager;
+
         public VentaCabecerasController(ApplicationDbContext context)
         {
             _context = context;
@@ -83,9 +85,10 @@ namespace ShopCartSoftware.Controllers
 
                 if (User.Identity.IsAuthenticated)
                 {
-                    var user = userManager.Id;
+                    //var user = userManager.Id;  //NO SIRVE
+                    var user = User.FindFirstValue(ClaimTypes.NameIdentifier); //SI Funciona!
                     ventaCabecera.IdUsuario = user;
-
+                  
                     var ListDetalle = new List<VentaDetalle>();
                     foreach (var item in ListProducts)
                     {
