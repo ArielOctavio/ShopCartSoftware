@@ -31,6 +31,7 @@ namespace ShopCartSoftware.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Index()
         {
+            Console.WriteLine("HOLA");
             return View(await _context.Product.ToListAsync());
         }
 
